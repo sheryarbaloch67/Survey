@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Answer Survey</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h2>Answer Survey</h2>
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="survey_id" value="{{ survey_id }}" />
+        <div class="card">
+          <div class="card-body">
+            {% for question in survey_questions %}
+              <div class="form-group">
+                <label for="question{{ question.question.id }}">{{ question.question.text }}</label>
+                {% if question.question.type.type == 'Text' %}
+                  <input type="text" class="form-control" id="question{{ question.question.id }}" name="answers[{{ question.question.id }}]" />
+                {% elif question.question.type.type == 'Number' %}
+                  <input type="number" class="form-control" id="question{{ question.question.id }}" name="answers[{{ question.question.id }}]" />
+                {% elif question.question.type.type == 'Dropdown' %}
+                  <select class="form-control" id="question{{ question.question.id }}" name="answers[{{ question.question.id }}]">
+                    {% for choice in question.choices %}
+                      <option value="{{ choice.id }}">{{ choice.text }}</option>
+                    {% endfor %}
+                  </select>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Submit</button>
+      </form>
+    </div>
+  </body>
+</html>

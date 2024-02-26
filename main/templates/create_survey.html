@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Survey Form</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Create Survey Form</h2>
+        <form id="surveyForm" method="POST" action="{% url 'create_survey' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="surveyTitle">Survey Title:</label>
+                <input type="text" class="form-control" id="surveyTitle" name="title">
+            </div>
+            <div class="form-group">
+                <label for="surveyDescription">Survey Description:</label>
+                <textarea class="form-control" id="surveyDescription" name="description"></textarea>
+            </div>
+            <div id="questionsContainer">
+                <!-- Container to hold dynamically added questions -->
+            </div>
+            <button type="button" class="btn btn-primary mt-2" id="addQuestionBtn">Add Question</button>
+            <button type="submit" class="btn btn-success mt-2">Create Survey</button>
+        </form>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            var questionCounter = 0;
+
+            function addQuestion() {
+                questionCounter++;
+                var newQuestionHtml = `
+                    <div class="question">
+                        <!-- Indicator field for question start -->
+                        <input type="hidden" name="questions[indicator]" value="start">
+                        <label for="questionText${questionCounter}">Question ${questionCounter}:</label>
+                        <input type="text" class="form-control" id="questionText${questionCounter}" name="questions[${questionCounter}][text]">
+                        <input type="hidden" name="questions[${questionCounter}][order]" value="${questionCounter}">
+                        <label for="questionType${questionCounter}">Question Type:</label>
+                        <select class="form-control questionTypeSelect" id="questionType${questionCounter}" name="questions[${questionCounter}][type]">
+                            {% for question_type in question_types %}
+                                <option value="{{ question_type.id }}">{{ question_type.type }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="choicesContainer" id="choicesContainer${questionCounter}" style="display: none;">
+                            <!-- Container to hold choices for dropdown questions -->
+                        </div>
+                    </div>
+                `;
+            
+                $('#questionsContainer').append(newQuestionHtml);
+            }
+        
+            function addChoices(questionIndex) {
+                var choicesContainer = $(`#choicesContainer${questionIndex}`);
+                for (var i = 1; i <= 4; i++) {
+                    var choiceInputHtml = `
+                        <input type="text" class="form-control" name="questions[${questionIndex}][choices][${i-1}][text]" placeholder="Choice ${i}">
+                    `;
+                    choicesContainer.append(choiceInputHtml);
+                }
+            }
+
+            $('#addQuestionBtn').click(function() {
+                addQuestion();
+            });
+
+            $(document).on('change', '.questionTypeSelect', function() {
+                var questionIndex = $(this).attr('id').match(/\d+/)[0];
+                var questionType = $(this).val();
+                var choicesContainer = $(`#choicesContainer${questionIndex}`);
+
+                choicesContainer.empty();
+
+                if (questionType == 3) {
+                    addChoices(questionIndex);
+                    choicesContainer.show();
+                } else {
+                    choicesContainer.hide();
+                }
+            });
+        });              
+    </script>    
+</body>
+</html>
